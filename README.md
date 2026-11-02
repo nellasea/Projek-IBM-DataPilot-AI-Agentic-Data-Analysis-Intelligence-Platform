@@ -1,109 +1,169 @@
 # DataPilot AI 🧭
 
-> Agentic Data Analysis & Intelligence Platform
+**Agentic Data Analysis & Intelligence Platform**
 
-Upload a CSV or XLSX file and ask supported questions about it in Indonesian or English. This capstone build uses a LangGraph workflow with deterministic, rule-based intent detection and registered analytical tools. It does not use an LLM or external AI API.
+DataPilot AI is a rule-based agentic data analysis platform that allows users to upload CSV or XLSX files and ask analytical questions in Indonesian or English.
+
+Built with Python, Streamlit, and LangGraph, the platform uses deterministic intent detection, structured planning, registered analytical tools, and grounded result generation to automate common data analysis tasks.
+
+This capstone implementation operates entirely offline. It does not require an LLM, external AI API, or API credentials.
 
 ---
 
 ## Implementation Mode
 
-DataPilot AI operates in two modes:
+DataPilot AI currently supports one active execution mode:
 
-| Mode | Description | Requires |
-|------|-------------|----------|
-| **Rule-Based Agent** *(only mode in this submission build)* | Deterministic intent detection, planning, registered-tool selection, execution, and grounded explanation | Nothing — no API key or external service |
+| Mode | Description | Requirements |
+|---|---|---|
+| **Rule-Based Agent** | Deterministic intent detection, planning, registered-tool selection, execution, and grounded explanation. | No API key or external service required. |
 
-**This submission build is intentionally offline. Legacy provider modules may remain in the repository for reference, but the active agent flow never initializes or invokes them.**
+**Important:** This submission build is intentionally offline. Legacy provider modules may remain in the repository for reference, but the active agent workflow does not initialize or invoke external LLM providers.
 
 ---
 
 ## Features
 
-| # | Feature |
-|---|---------|
-| 1 | CSV & XLSX ingestion with validation |
-| 2 | Automated data profiling |
-| 3 | Data quality inspection & scoring |
-| 4 | Natural language querying (LangGraph agent) |
-| 5 | Rule-based intent detection (12 intent categories) |
-| 6 | Safe tool execution (DuckDB, Pandas, Stats) |
-| 7 | Statistical analysis (correlation, t-test, ANOVA, chi²) |
-| 8 | Interactive Plotly visualisations |
-| 9 | Grounded explanations from actual tool results |
-| 10 | ML anomaly detection (IsolationForest, where sufficient numeric data is available) |
-| 11 | Analysis history (session-based) |
-| 12 | Offline rule-based agent workflow (no external LLM integration in this build) |
+| No. | Feature | Description |
+|---|---|---|
+| 1 | CSV & XLSX Ingestion | Upload and validate structured datasets. |
+| 2 | Automated Data Profiling | Generate dataset summaries and column information. |
+| 3 | Data Quality Inspection | Identify missing values, duplicates, and data quality issues. |
+| 4 | Natural Language Querying | Ask analytical questions through the LangGraph agent workflow. |
+| 5 | Rule-Based Intent Detection | Recognize 12 categories of analytical intent. |
+| 6 | Safe Tool Execution | Execute analytical operations using DuckDB, Pandas, and statistical tools. |
+| 7 | Statistical Analysis | Perform correlation, t-test, ANOVA, and chi-square analysis. |
+| 8 | Interactive Visualization | Generate interactive charts using Plotly. |
+| 9 | Grounded Explanations | Generate explanations based on actual analytical tool results. |
+| 10 | Anomaly Detection | Detect potential anomalies using IsolationForest when sufficient numeric data is available. |
+| 11 | Analysis History | Maintain session-based analysis history. |
+| 12 | Offline Agent Workflow | Run the complete rule-based analytical workflow without external LLM integration. |
 
 ---
 
-## Architecture
+## System Architecture
 
-```
-Streamlit UI  ←→  LangGraph Agent
-                       ↓
-               Rule-Based Planner         ← active, offline-only
-                       ↓
+DataPilot AI uses a LangGraph-based workflow to coordinate intent detection, analytical planning, tool execution, and result explanation.
+
+```text
+                 Streamlit UI
+                      ↕
+                LangGraph Agent
+                      ↓
+              Rule-Based Planner
+               (Offline Execution)
+                      ↓
                  Tool Registry
-                (DuckDB, Pandas, Stats, Plotly, Anomaly)
-                       ↓
-               Grounded Explanation
-               (deterministic, template-based)
+                      ↓
+       ┌──────────────┼──────────────┐
+       ↓              ↓              ↓
+    DuckDB         Pandas          Stats
+       ↓              ↓              ↓
+    Plotly       Anomaly Tools   Analysis
+       └──────────────┼──────────────┘
+                      ↓
+             Result Validation
+                      ↓
+             Grounded Explanation
+             (Template-Based)
+                      ↓
+                Display Result
 ```
 
 ### Rule-Based Agent Execution Flow
 
-```
+```text
 USER QUESTION
-    ↓
-QUESTION NORMALISATION
-    ↓
-INTENT DETECTION  (keyword/regex matching)
-    ↓
+     ↓
+QUESTION NORMALIZATION
+     ↓
+INTENT DETECTION
+(Keyword / Regex Matching)
+     ↓
 PARAMETER & COLUMN VALIDATION
-    ↓
-TOOL SELECTION  (from registry)
-    ↓
-TOOL EXECUTION  (Pandas · DuckDB · SciPy · Scikit-learn)
-    ↓
+     ↓
+TOOL SELECTION
+(Registered Tool Registry)
+     ↓
+TOOL EXECUTION
+(Pandas · DuckDB · SciPy · Scikit-learn)
+     ↓
 RESULT VALIDATION
-    ↓
-GROUNDED EXPLANATION  (numbers come from actual tool output)
-    ↓
+     ↓
+GROUNDED EXPLANATION
+(Values from Actual Tool Output)
+     ↓
 DISPLAY RESULT
 ```
 
 ### Supported Intents
 
-| Intent | Example question |
-|--------|-----------------|
-| Dataset profile / overview | "Give me an overview of this dataset" |
-| Descriptive statistics | "What is the average, mean, and median?" |
-| Group-by aggregation | "Total revenue by product category" |
-| Top / highest values | "Which product has the highest sales?" |
-| Bottom / lowest values | "What are the lowest-selling items?" |
-| Missing-value analysis | "How many missing values are there?" |
-| Duplicate detection | "Are there any duplicate rows?" |
-| Anomaly detection | "Detect outliers in the data" |
-| Correlation analysis | "Is there a correlation between price and quantity?" |
-| Distribution analysis | "Show the distribution of prices" |
-| Time-series aggregation | "Revenue trend over time" |
-| Visualisation requests | "Plot a bar chart of sales by region" |
+The agent supports the following 12 categories of analytical intent:
+
+| Intent | Example Question |
+|---|---|
+| Dataset Profile / Overview | "Give me an overview of this dataset." |
+| Descriptive Statistics | "What are the average, mean, and median values?" |
+| Group-by Aggregation | "What is the total revenue by product category?" |
+| Top / Highest Values | "Which product has the highest sales?" |
+| Bottom / Lowest Values | "What are the lowest-selling items?" |
+| Missing-value Analysis | "How many missing values are there?" |
+| Duplicate Detection | "Are there any duplicate rows?" |
+| Anomaly Detection | "Detect outliers in the data." |
+| Correlation Analysis | "Is there a correlation between price and quantity?" |
+| Distribution Analysis | "Show the distribution of prices." |
+| Time-series Aggregation | "What is the revenue trend over time?" |
+| Visualization Requests | "Plot a bar chart of sales by region." |
 
 ---
 
 ## Project Structure
 
-```
+```text
 datapilot-ai/
-├── agent/          LangGraph state machine (Planner → Executor → Insight → Evaluator)
-├── api/            FastAPI app and routes (optional backend)
-├── core/           Config, logging, exceptions
-├── data/           Ingestion, profiling, quality
-├── llm/            Legacy provider abstraction and offline rule-based planner
-│   └── fallback.py     Rule-based planner & grounded insight synthesiser
-├── tools/          DuckDB, Pandas, Stats, Plotly, Anomaly tools + registry
-├── ui/             Streamlit pages
+│
+├── agent/
+│   ├── __init__.py
+│   ├── evaluator.py
+│   ├── graph.py
+│   ├── nodes.py
+│   └── state.py
+│
+├── api/
+│   ├── routes/
+│   ├── main.py
+│   ├── schemas.py
+│   └── session_store.py
+│
+├── core/
+│   ├── config.py
+│   ├── exceptions.py
+│   └── logging.py
+│
+├── data/
+│   ├── ingestion.py
+│   ├── profiling.py
+│   ├── quality.py
+│   └── storage.py
+│
+├── eval/
+│   ├── metrics.py
+│   └── report.py
+│
+├── llm/
+│   ├── fallback.py
+│   ├── prompts.py
+│   └── provider.py
+│
+├── tools/
+│   ├── anomaly_tool.py
+│   ├── duckdb_tool.py
+│   ├── pandas_tool.py
+│   ├── plotly_tool.py
+│   ├── registry.py
+│   └── stats_tool.py
+│
+├── ui/
 │   ├── app.py
 │   └── pages/
 │       ├── 1_upload.py
@@ -111,8 +171,47 @@ datapilot-ai/
 │       ├── 3_query.py
 │       ├── 4_visualize.py
 │       └── 5_history.py
-└── tests/          Pytest test suite (run locally; see Testing)
+│
+├── tests/
+│   ├── conftest.py
+│   ├── test_api.py
+│   ├── test_config.py
+│   ├── test_config_env.py
+│   ├── test_fallback.py
+│   ├── test_ingestion.py
+│   ├── test_llm_provider.py
+│   ├── test_profiling.py
+│   ├── test_quality.py
+│   ├── test_semantic_column_matching.py
+│   └── test_tools.py
+│
+├── .env.example
+├── .gitignore
+├── Dockerfile
+├── docker-compose.yml
+├── pyproject.toml
+└── README.md
 ```
+
+---
+
+## Technology Stack
+
+| Category | Technologies |
+|---|---|
+| Programming Language | Python |
+| Frontend | Streamlit |
+| Backend API | FastAPI |
+| Agent Orchestration | LangGraph |
+| Data Processing | Pandas, NumPy |
+| Query Engine | DuckDB |
+| Statistical Analysis | SciPy |
+| Machine Learning | Scikit-learn |
+| Data Visualization | Plotly |
+| Database | SQLite |
+| Data Validation | Pydantic |
+| Logging | Structlog |
+| Testing | Pytest |
 
 ---
 
@@ -120,85 +219,127 @@ datapilot-ai/
 
 ### Prerequisites
 
-- Python 3.11+
-- No external API credentials required for Rule-Based Mode
+- Python 3.11 or newer
+- Git
+- No external API credentials required for the active Rule-Based Agent mode.
 
-### 1. Clone and install
+### 1. Clone the Repository
 
 ```powershell
-git clone https://github.com/your-org/datapilot-ai.git
-cd datapilot-ai
+git clone https://github.com/nellasea/Projek-IBM-DataPilot-AI-Agentic-Data-Analysis-Intelligence-Platform.git
+
+cd Projek-IBM-DataPilot-AI-Agentic-Data-Analysis-Intelligence-Platform
+```
+
+### 2. Create a Virtual Environment
+
+```powershell
+python -m venv .venv
+```
+
+Activate it on Windows PowerShell:
+
+```powershell
+.\.venv\Scripts\Activate.ps1
+```
+
+If PowerShell blocks script execution, you can run the application using the virtual environment's Python executable directly without activating it.
+
+### 3. Install Dependencies
+
+```powershell
+python -m pip install --upgrade pip
 pip install -e ".[dev]"
 ```
 
-### 2. Configure environment (optional)
+### 4. Configure Environment Variables (Optional)
+
+Create a local environment file:
 
 ```powershell
 Copy-Item .env.example .env
-# LLM_PROVIDER=fallback — this submission build runs offline without API keys
 ```
 
-### 3. Run the Streamlit UI
+The active submission build runs in offline Rule-Based Agent mode and does not require an API key.
+
+### 5. Run the Streamlit Application
 
 ```powershell
 streamlit run ui/app.py
 ```
 
-UI available at http://localhost:8501
+Open the application in your browser:
 
-### 4. (Optional) Run the FastAPI backend
+```text
+http://localhost:8501
+```
+
+### 6. Run the Optional FastAPI Backend
+
+If the backend is configured and required:
 
 ```powershell
 uvicorn api.main:app --reload --host 0.0.0.0 --port 8000
 ```
 
-API docs at http://localhost:8000/docs
+API documentation:
+
+```text
+http://localhost:8000/docs
+```
+
+The FastAPI backend is optional. The Streamlit interface can operate independently.
 
 ---
 
 ## Environment Variables
 
-See [`.env.example`](.env.example) for all options.
+See [`.env.example`](.env.example) for the environment configuration used by the project.
 
 | Variable | Default | Description |
-|----------|---------|-------------|
-| `LLM_PROVIDER` | `fallback` | Offline rule-based execution; external providers are disabled in this submission build |
-| `APP_ENV` | `development` | `development` / `production` |
-| `LOG_LEVEL` | `INFO` | `DEBUG` / `INFO` / `WARNING` / `ERROR` |
-| `MAX_UPLOAD_MB` | `100` | Maximum file upload size |
-| `SQLITE_URL` | `sqlite+aiosqlite:///./datapilot.db` | History database |
+|---|---|---|
+| `LLM_PROVIDER` | `fallback` | Selects the offline rule-based execution mode in this submission build. |
+| `APP_ENV` | `development` | Application environment. |
+| `LOG_LEVEL` | `INFO` | Logging level: DEBUG, INFO, WARNING, or ERROR. |
+| `MAX_UPLOAD_MB` | `100` | Maximum permitted upload size in MB. |
+| `SQLITE_URL` | `sqlite+aiosqlite:///./datapilot.db` | SQLite database connection for history storage. |
 
 ---
 
 ## Running Tests
 
+Run the test suite from the project root:
+
 ```powershell
 python -m pytest tests/ -v
 ```
 
-**Test status:** execute the suite locally before submission; no unverified pass count is claimed.
+**Test status:** The test suite must be executed locally before submission. No unverified test pass count or success rate is claimed.
 
-Test coverage:
-- Application configuration (with and without API keys)
-- CSV and XLSX ingestion
-- Data profiling
-- Data quality inspection
-- All tool implementations (DuckDB, Pandas, Stats, Anomaly, Plotly)
-- Rule-based intent detection (12 intent categories)
-- Fallback plan builder (all intent paths)
-- Fallback plan execution against real data
-- Insight synthesis from actual tool results (Indonesian & English)
-- Rule-based execution without external API credentials
-- Semantic column matching — bilingual alias resolution (33 regression cases)
-- Agent planner/executor/insight nodes in offline rule-based mode
-- Regression checks for missing requested columns and transaction-count ranking
-- Chart rendering from DuckDB query result (alias column fix)
+### Test Coverage
+
+The existing test suite includes checks for:
+
+- Application configuration, including configurations with and without API keys.
+- CSV and XLSX ingestion.
+- Automated data profiling.
+- Data quality inspection.
+- Analytical tool implementations: DuckDB, Pandas, Stats, Anomaly, and Plotly.
+- Rule-based intent detection across 12 intent categories.
+- Fallback plan generation and execution.
+- Insight synthesis from actual tool results in Indonesian and English.
+- Offline execution without external API credentials.
+- Semantic column matching and bilingual alias resolution.
+- Agent planner, executor, and insight nodes.
+- Missing requested-column validation.
+- Transaction-count ranking regression checks.
+- Chart rendering from DuckDB query results.
 
 ---
 
 ## Demonstration Questions
 
-Upload any CSV or XLSX file to the **Upload** page, then use these questions on the **Ask DataPilot** page:
+Upload a CSV or XLSX dataset through the **Upload** page. Then open **Ask DataPilot** and try these example questions:
 
 1. `Give me an overview of this dataset`
 2. `Which category has the highest total revenue?`
@@ -207,44 +348,76 @@ Upload any CSV or XLSX file to the **Upload** page, then use these questions on 
 5. `What is the correlation between numeric columns?`
 6. `Plot a bar chart of sales by region`
 
+The questions are examples. Their results depend on the columns, data types, and contents of the uploaded dataset.
+
 ---
 
 ## Security Model
 
-- **No `eval()` or `exec()`** anywhere in the codebase.
-- The agent produces a **structured plan** — only registered tool names and typed parameters.
-- DuckDB queries run against an **in-memory database** — no file system access.
-- All tool parameters are validated by **Pydantic models** before execution.
-- Only **SELECT** SQL statements are permitted (regex-validated).
-- No API keys are needed in the offline submission build. Never include `.env` or credentials in a shared ZIP or Git repository.
+DataPilot AI applies the following safeguards:
+
+- **No dynamic code execution:** The project does not rely on `eval()` or `exec()` for agent execution.
+- **Structured analytical plans:** The agent generates structured plans using registered tool names and typed parameters.
+- **Controlled tool execution:** Analytical operations are routed through the registered tool system.
+- **Parameter validation:** Tool parameters are validated using Pydantic models.
+- **Restricted SQL operations:** Only permitted `SELECT` queries are intended to be executed, subject to the application's SQL validation.
+- **Offline execution:** The active submission workflow does not require external API credentials.
+- **Secret protection:** Never commit `.env` files, API credentials, or other sensitive configuration files to GitHub.
 
 ---
 
 ## Known Limitations
 
-- **Rule-Based Mode** responds to the primary intent only; multi-part questions with compound intents are handled by their dominant keyword match.
-- **Anomaly detection** requires at least 10 rows of numeric data (IsolationForest minimum).
-- **Time-series analysis** requires a column with `date`, `time`, `year`, `month`, or `day` in its name, or a datetime-typed column.
-- **LLM self-evaluation is disabled** in this offline submission build. Use the deterministic regression tests and evaluation scripts for measurable quality checks.
-- **The FastAPI backend** is optional for the Streamlit UI — the UI functions standalone without it.
+- **Rule-Based Intent Detection:** The agent uses keyword and regex matching. It is not equivalent to unrestricted natural-language understanding.
+- **Primary Intent Handling:** The current workflow prioritizes the dominant detected intent. Compound questions containing multiple analytical requests may not be fully supported.
+- **Anomaly Detection:** IsolationForest requires sufficient numeric data. The current implementation is intended for datasets with at least 10 rows.
+- **Time-series Analysis:** Requires a datetime-typed column or a recognizable date/time-related column name, such as `date`, `time`, `year`, `month`, or `day`.
+- **No LLM Self-Evaluation:** LLM-based self-evaluation is disabled in the offline submission build. Deterministic tests and evaluation scripts are used for quality checks.
+- **Optional API Backend:** The FastAPI backend is not required for the standalone Streamlit application.
 
 ---
 
-## Technology Stack
+## Future Development
 
-Python · FastAPI · Streamlit · LangGraph · Pandas · DuckDB · SciPy · Scikit-learn · Plotly · SQLite · Pydantic · Structlog
+Potential improvements include:
+
+- More flexible natural-language understanding.
+- Multi-step analytical planning and execution.
+- Expanded semantic column matching.
+- Predictive analytics and forecasting.
+- Automated analytical report generation and export.
+- Multi-dataset analysis.
+- Additional database integrations.
+- Optional local LLM integration when sufficient hardware resources are available.
+
+---
+
+## Capstone Implementation Note
+
+This submission should be described accurately as a **Rule-Based Agentic Data Analysis Platform**.
+
+It demonstrates an agentic workflow through:
+
+1. User-question normalization.
+2. Intent detection.
+3. Analytical parameter and column validation.
+4. Structured planning.
+5. Registered-tool selection.
+6. Deterministic tool execution.
+7. Result validation.
+8. Grounded insight generation.
+
+It is **not an LLM-powered agent**. Its active analytical workflow does not depend on external generative AI services.
+
+IBM Bob was used as a development assistant during project implementation, not as the runtime engine of DataPilot AI.
 
 ---
 
 ## License
 
-MIT
+This project is licensed under the MIT License.
 
+---
 
-## Capstone implementation note
-
-This version should be described accurately as a **Rule-Based Agentic Data Analysis Platform**. It demonstrates intent detection, planning, registered-tool selection, deterministic execution, and grounded result synthesis. It is not an LLM-powered agent.
-
-Do not distribute a `.env` file or API credentials. The repository intentionally excludes local secrets, virtual environments, runtime databases, and cache files.
-#   P r o j e k - I B M - D a t a P i l o t - A I - A g e n t i c - D a t a - A n a l y s i s - I n t e l l i g e n c e - P l a t f o r m  
- 
+**DataPilot AI**  
+*Turning structured data into actionable insights through agentic workflows.*
